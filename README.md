@@ -12,7 +12,6 @@ Data is stored in YAML so any small changes are easily seen in git diff.
 
 ## Installation
 
-
 One can either use Python sources or a Windows executable.
 
 1. Install YAML library
@@ -25,14 +24,17 @@ pip install PyYAML
 pip install sfdclib
 ```
 
-3. Add text field DDP_Migrator_Id__c (Length=36, External ID, Unique, Case sensitive) to the following custom objects:
+3. Add text field DDP\_Migrator\_Id\_\_c (Length=36, External ID, Unique, Case sensitive) to the following custom objects:
  * DDP: Loop\_\_DDP\_\_c
  * DDP File: Loop\_\_DDP\_File\_\_c
  * Delivery Option: Loop\_\_DDP\_Integration_Option\_\_c
  * Relationship: Loop\_\_Related\_Object\_\_c
 
-4. Execute PopulateGuids.apex script to set values in DDP_Migrator_Id__c field in all four objects
-5. Populate GUIDs in Production first, then either refresh sandboxes from Production or copy external IDs to sandboxes to have IDs match in all environments
+4. Execute PopulateGuids.apex script to set values in DDP\_Migrator\_Id\_\_c field in all four objects
+5. Deploy triggers and a class stored in **metadata** directory.
+
+It is recommended to populate GUIDs/external IDs in Production org first
+and then push IDs to lower environments using **push-ids** command.
 
 How to package Windows executable
 ---------------------------------
