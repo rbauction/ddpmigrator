@@ -1,8 +1,8 @@
 # DDP migrator
-Tool to manage DocuSign for Salesforce document and make them Git-friendly
+Tool to manage Drawloop for Salesforce document and make them Git-friendly
 
 
-This tool has been designed as an alternative to DocuSign's DDP migration tool
+This tool has been designed as an alternative to Drawloop's DDP migration tool
 that migrates DDPs from one sandbox to another which doesn't allow to version
 control DDPs. In addition every once in a while work-in-progress DDPs get
 promoted to higher environments.
