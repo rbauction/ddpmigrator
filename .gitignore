@@ -1,0 +1,8 @@
+build/
+ddpmigrator.spec
+dist/
+.idea/
+__pycache__
+*.iml
+*.csv
+*.zip

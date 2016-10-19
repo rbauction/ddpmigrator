@@ -1,0 +1,77 @@
+# List of fields to be excluded during export
+excluded-fields:
+  - OwnerId
+  - IsDeleted
+  - CreatedDate
+  - CreatedById
+  - LastModifiedDate
+  - LastModifiedById
+  - SystemModstamp
+  - LastViewedDate
+  - LastReferencedDate
+  - UserRecordAccessId
+
+# Name of unique external ID field
+# This field must exist in each table managed by DDP Migrator
+unique-key: DDP_Migrator_Id__c
+
+# Loop triggers will fire on update/upsert which might cause the following error
+# "execution of BeforeUpdate caused by: System.LimitException: Apex CPU time limit exceeded"
+# The tool will update records in batches to avoid this issue
+update-batch-size: 100
+
+# List of objects/tables
+tables:
+  # Main table containing DDP name, type, etc
+  # Object and field names are case-sensitive
+  Loop.Loop__DDP__c:
+    # Name of one or more columns to use to name a file
+    name: Name
+    # Table name alias to be used to name child directory (file in case of parent table)
+    alias: DDP
+    # List of fields and their import/export handlers
+    # Handler classes are located in fieldhandlers directory
+    field-handlers:
+      RecordTypeId:
+        class: RecordTypeIdHandler
+      Loop__Security__c:
+        class: LoopSecurityHandler
+  # Files/templates attached to DDP
+  Loop.Loop__DDP_File__c:
+    name: Name
+    alias: Files
+    # Master-detail or lookup fields in format 'field name: Namespace.Object.Field'
+    parent-relationship:
+      field: Loop__DDP__c
+      parent-table: Loop.Loop__DDP__c
+      parent-field: DDP_Migrator_Id__c
+    field-handlers:
+      Loop__Document_ID__c:
+        class: LoopDocumentIdHandler
+  # Delivery options
+  Loop.Loop__DDP_Integration_Option__c:
+    name: Name
+    alias: Delivery_Options
+    parent-relationship:
+      field: Loop__DDP__c
+      parent-table: Loop.Loop__DDP__c
+      parent-field: DDP_Migrator_Id__c
+    field-handlers:
+      RecordTypeId:
+        class: RecordTypeIdHandler
+  # Relationships
+  Loop.Loop__Related_Object__c:
+    # In this case file will be named <Loop__Index__c>-<Name>
+    name: [Loop__Index__c, Name]
+    alias: Relationships
+    parent-relationship:
+      field: Loop__DDP__c
+      parent-table: Loop.Loop__DDP__c
+      parent-field: DDP_Migrator_Id__c
+    field-handlers:
+      Loop__Parent_Object__c:
+        class: LoopParentObjectHandler
+        retry-failed: true
+      Loop__Parent_Relationship__c:
+        class: LoopParentObjectHandler
+        retry-failed: true
