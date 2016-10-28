@@ -5,6 +5,12 @@ trigger PopulateGuidDDP on Loop__DDP__c (before insert) {
             for (Loop__DDP__c l : trigger.new) {
                 if (l.DDP_Migrator_Id__c == null)
                     l.DDP_Migrator_Id__c = GUIDGenerator.generateGUID();
+                else {
+                    // Generate new GUID if DDP gets cloned
+                    Integer count = [SELECT COUNT() FROM Loop__DDP__c WHERE DDP_Migrator_Id__c = :l.DDP_Migrator_Id__c];
+                    if (count > 0)
+                        l.DDP_Migrator_Id__c = GUIDGenerator.generateGUID();
+                }
             }
         } catch (Exception ex) {
             String body = (ex.getMessage().contains('FIELD_CUSTOM_VALIDATION_EXCEPTION')) ?
