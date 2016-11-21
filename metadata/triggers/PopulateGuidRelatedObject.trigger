@@ -1,13 +1,13 @@
-trigger PopulateGuidRelatedObject on Loop__Related_Object__c (before insert) {
+trigger PopulateGuidRelatedObject on Loop__Related_Object__c (before insert, before update) {
     // Before Insert: Assign GUID
-    if (trigger.isBefore && trigger.isInsert) {
+    if (trigger.isBefore && (trigger.isInsert || trigger.isUpdate)) {
         try {
             for (Loop__Related_Object__c l : trigger.new) {
                 if (l.DDP_Migrator_Id__c == null)
                     l.DDP_Migrator_Id__c = GUIDGenerator.generateGUID();
                 else {
                     // Generate new GUID if DDP gets cloned
-                    Integer count = [SELECT COUNT() FROM Loop__Related_Object__c WHERE DDP_Migrator_Id__c = :l.DDP_Migrator_Id__c];
+                    Integer count = [SELECT COUNT() FROM Loop__Related_Object__c WHERE DDP_Migrator_Id__c = :l.DDP_Migrator_Id__c AND Id != :l.Id];
                     if (count > 0)
                         l.DDP_Migrator_Id__c = GUIDGenerator.generateGUID();
                 }
