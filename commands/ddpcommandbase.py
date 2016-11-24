@@ -12,6 +12,7 @@ import os
 class DdpCommandBase:
     _LOOP_DIR_NAME = "loop"
     _DATA_DIR_NAME = "data"
+    _DOCS_DIR_NAME = "documents"
 
     """ Base command class """
     def __init__(self, settings, **kwargs):
@@ -79,6 +80,10 @@ class DdpCommandBase:
     def _get_relative_data_dir(self):
         """ Returns path to data directory relative to source directory """
         return os.path.join(self._get_relative_loop_dir(), self._DATA_DIR_NAME)
+
+    def _get_relative_docs_dir(self):
+        """ Returns path to documents directory relative to source directory """
+        return os.path.join(self._get_relative_loop_dir(), self._DOCS_DIR_NAME)
 
     def _get_relative_file_path(self, path):
         return os.path.relpath(path, self._get_relative_loop_dir())

@@ -2,6 +2,7 @@ from commands.ddpcommandbase import DdpCommandBase
 from helpers import csvhelper, yamlhelper
 
 import copy
+import glob
 import os
 import shutil
 import subprocess
@@ -44,6 +45,9 @@ class DdpImport(DdpCommandBase):
             "."
         ]
         output_bytes = subprocess.check_output(args, cwd=self._get_loop_dir())
+        self._process_git_diff_output(output_bytes)
+
+    def _process_git_diff_output(self, output_bytes):
         # Convert escaped unicode characters to utf-8, then to latin_1, then to utf-8 again
         # b'Ench\\303\\250res' -> u'Ench\xc3\xa8res' -> b'Ench\xc3\xa8res' -> u'Enchères'
         output = output_bytes.decode('unicode_escape').encode('latin_1').decode('utf-8')
@@ -72,6 +76,39 @@ class DdpImport(DdpCommandBase):
                     self._file_changes['modified'].append(full_filename)
                 else:
                     self._file_changes['added'].append(full_filename)
+
+    def _fake_new_files_for_ddp_list(self):
+        # Add data files to the list of changed/new files first
+        temp_dir = tempfile.TemporaryDirectory()
+        for ddp in self._kwargs['ddp']:
+            # Find added files using git diff
+            args = [
+                "git",
+                "diff",
+                "--no-index",
+                "--name-status",
+                "--diff-filter=AM",
+                temp_dir.name,
+                "{0}\\{1}".format(self._get_relative_data_dir(), ddp)
+            ]
+            try:
+                # We expect this command to fail (exit code 1). This is how git diff works
+                subprocess.check_output(args, cwd=self._source_dir)
+            except subprocess.CalledProcessError as ex:
+                self._process_git_diff_output(ex.output)
+        temp_dir.cleanup()
+        # Find new files in Files directories, extract Loop__Document_ID__c field and add it to changed files
+        for data_file in self._data_changes['added']:
+            if '\\Files\\' in data_file:
+                ddp_file = self._extract_ddp_file_name(data_file)
+                wildcard = os.path.join(self._source_dir, *[self._get_relative_docs_dir(), "{0}*".format(ddp_file)])
+                for file_name in glob.glob(wildcard):
+                    full_filename = os.path.relpath(os.path.normpath(file_name), self._source_dir)
+                    self._file_changes['added'].append(full_filename)
+
+    def _extract_ddp_file_name(self, file_name):
+        obj = yamlhelper.load_one_yaml(os.path.join(self._source_dir, file_name))
+        return obj['Loop__Document_ID__c']
 
     def _copy_file_to_temp(self, filename):
         rel_path = self._get_relative_file_path(filename)
@@ -111,7 +148,10 @@ class DdpImport(DdpCommandBase):
 
     def _calculate_delta(self):
         self._create_temp_dirs()
-        self._find_new_and_changed_files()
+        if 'ddp' in self._kwargs:
+            self._fake_new_files_for_ddp_list()
+        else:
+            self._find_new_and_changed_files()
         self._find_changed_tables()
         self._generate_file_delta()
 

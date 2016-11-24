@@ -53,12 +53,12 @@ It creates loop directory in the source directory and data and documents sub-dir
 
 **Export all DDPs**
 ```sh
-ddpmigrator.py --sandbox --username user@domain.com.sandbox_name --password Secret --source-dir .. export
+ddpmigrator.py export --sandbox --username user@domain.com.sandbox_name --password Secret --source-dir ..
 ```
 
 **Export two DDPs**
 ```sh
-ddpmigrator.py --sandbox --username user@domain.com.sandbox_name --password Secret --source-dir .. export --ddp "DDP one" "DDP two"
+ddpmigrator.py export --sandbox --username user@domain.com.sandbox_name --password Secret --source-dir .. --ddp "DDP one" "DDP two"
 ```
 
 ### Push external IDs
@@ -68,7 +68,7 @@ It will push external IDs stored in the source directory to a sandbox.
 
 **Update all external IDs**
 ```sh
-ddpmigrator.py --sandbox --username user@domain.com.sandbox_name --password Secret --source-dir .. push-ids
+ddpmigrator.py push-ids --sandbox --username user@domain.com.sandbox_name --password Secret --source-dir ..
 ```
 
 ### Import
@@ -76,5 +76,10 @@ The tool expects the source directory to be a Git repository so it can run 'git 
 
 **Import DDPs changed since certain commit**
 ```sh
-ddpmigrator.py --sandbox --username user@domain.com.sandbox_name --password Secret --source-dir .. --baseline 6771fbc7 import
+ddpmigrator.py import --sandbox --username user@domain.com.sandbox_name --password Secret --source-dir .. --baseline 6771fbc7
+```
+
+**Import specific DDPs**
+```sh
+ddpmigrator.py import --sandbox --username user@domain.com.sandbox_name --password Secret --source-dir .. --ddp "DDP one" "DDP two"
 ```

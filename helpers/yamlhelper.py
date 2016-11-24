@@ -27,3 +27,8 @@ def load_multiple_yaml(changed_rows, unique_key, root_dir):
             rows[row[unique_key]] = list(row.values())
             field_names = list(row.keys())
     return field_names, rows
+
+
+def load_one_yaml(file_name):
+    with open(file_name, 'r') as file:
+        return yaml.load(file)
