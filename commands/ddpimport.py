@@ -307,7 +307,7 @@ class DdpImport(DdpCommandBase):
         namespace, dev_name = table_name.split('.')
         status = self._upsert_data(dev_name, csv_data, self._unique_key)
         if int(status['failed']) > 0:
-            raise Exception("   Could not upsert {0} row(s)".format(status['failed']))
+            raise Exception("   Could not upsert {0} row(s)\n{1}".format(status['failed'], status['results']))
 
     def _create_package_xml(self):
         package_xml = self._PACKAGE_XML_START
