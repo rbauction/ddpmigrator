@@ -1,5 +1,5 @@
 # DDP migrator
-Tool to manage Drawloop for Salesforce document and make them Git-friendly
+Tool to manage Drawloop for Salesforce documents and make them Git-friendly
 
 
 This tool has been designed as an alternative to Drawloop's DDP migration tool
