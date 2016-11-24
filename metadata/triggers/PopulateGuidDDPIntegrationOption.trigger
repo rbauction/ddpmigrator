@@ -1,24 +1,34 @@
 trigger PopulateGuidDDPIntegrationOption on Loop__DDP_Integration_Option__c (before insert) {
     // Before Insert: Assign GUID
     if (trigger.isBefore && trigger.isInsert) {
+        Set<String> idsToCheck = new Set<String>();
+        Set<String> existingIds = new Set<String>();
+        // Check whether newly added GUIDs are already in use
+        for (Loop__DDP_Integration_Option__c l : trigger.new) {
+            if (l.DDP_Migrator_Id__c != null)
+                idsToCheck.add(l.DDP_Migrator_Id__c);
+        }
+        List<Loop__DDP_Integration_Option__c> existingRecords = [
+            SELECT DDP_Migrator_Id__c
+            FROM Loop__DDP_Integration_Option__c
+            WHERE DDP_Migrator_Id__c IN :idsToCheck
+        ];
+        for (Loop__DDP_Integration_Option__c l : existingRecords)
+            existingIds.add(l.DDP_Migrator_Id__c);
+
         try {
             for (Loop__DDP_Integration_Option__c l : trigger.new) {
-                if (l.DDP_Migrator_Id__c == null)
+                // Generate new GUID if it is empty or if DDP is being cloned
+                if (l.DDP_Migrator_Id__c == null || existingIds.contains(l.DDP_Migrator_Id__c))
                     l.DDP_Migrator_Id__c = GUIDGenerator.generateGUID();
-                else {
-                    // Generate new GUID if DDP gets cloned
-                    Integer count = [SELECT COUNT() FROM Loop__DDP_Integration_Option__c WHERE DDP_Migrator_Id__c = :l.DDP_Migrator_Id__c];
-                    if (count > 0)
-                        l.DDP_Migrator_Id__c = GUIDGenerator.generateGUID();
-                }
             }
         } catch (Exception ex) {
             String body = (ex.getMessage().contains('FIELD_CUSTOM_VALIDATION_EXCEPTION')) ?
-                           ex.getDmlMessage(0) : 
+                           ex.getDmlMessage(0) :
                            ex.getMessage();
             String recordId = ex.getTypeName().equals('System.DmlException') ? ex.getDmlId(0) : null;
 
-            System.debug(LoggingLevel.ERROR, '\n-----------------------------------------------\n' 
+            System.debug(LoggingLevel.ERROR, '\n-----------------------------------------------\n'
                                           +   'An Exception has occurred! \n'
                                           +   'Exception Type: ' + ex.getTypeName() + '\n'
                                           +   'Exception Message: ' + body + '\n'
