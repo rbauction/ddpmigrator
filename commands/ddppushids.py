@@ -114,7 +114,8 @@ class DdpPushIds(DdpCommandBase):
         header, all_rows = csvhelper.load_csv_with_one_id_key(raw_data, 'Id')
         if 'parent-relationship' in table_settings:
             self._replace_parent_ids(table_name, header, all_rows)
-        rows, ids_to_names, names_to_ids = self._select_latest_rows(table_name, header, all_rows, names, select_empty_ext_id_only)
+        rows, ids_to_names, names_to_ids = self._select_latest_rows(
+            table_name, header, all_rows, names, select_empty_ext_id_only)
         return {
             'header': header,
             'rows': rows,

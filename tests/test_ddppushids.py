@@ -8,8 +8,16 @@ class DdpPushIdsTest(unittest.TestCase):
         settings = {
             'excluded-fields': [],
             'unique-key': 'DDP_Migrator_Id__c',
+            'update-batch-size': '100',
             'tables': {
-                'Loop.Loop__DDP__c'
+                'Loop.Loop__DDP__c': {
+                    'name': 'Name',
+                    'alias': 'DDP',
+                    'field-handlers': {
+                        'RecordTypeId': {'class': 'RecordTypeIdHandler'},
+                        'Loop__Security__c': {'class': 'LoopSecurityHandler'}
+                    }
+                }
             }
         }
         kwargs = {
@@ -27,7 +35,8 @@ class DdpPushIdsTest(unittest.TestCase):
         }
 
         command = self._setup_overwrite(False)
-        rows, ids_to_names = command._select_latest_rows(header, all_rows, ['Name'])
+        rows, ids_to_names, names_to_ids = \
+            command._select_latest_rows('Loop.Loop__DDP__c', header, all_rows, ['Name'], True)
 
         self.assertEqual({tuple(['DDP Name']): ['', '2016-10-15T20:41:07.000Z', 'DDP Name']}, rows)
         self.assertEqual({'a1t7A000003SnqkQAC': tuple(['DDP Name'])}, ids_to_names)
@@ -41,7 +50,8 @@ class DdpPushIdsTest(unittest.TestCase):
         }
 
         command = self._setup_overwrite(False)
-        rows, ids_to_names = command._select_latest_rows(header, all_rows, ['Name'])
+        rows, ids_to_names, names_to_ids = \
+            command._select_latest_rows('Loop.Loop__DDP__c', header, all_rows, ['Name'], True)
 
         self.assertEqual({}, rows)
         self.assertEqual({}, ids_to_names)
@@ -55,7 +65,8 @@ class DdpPushIdsTest(unittest.TestCase):
         }
 
         command = self._setup_overwrite(True)
-        rows, ids_to_names = command._select_latest_rows(header, all_rows, ['Name'])
+        rows, ids_to_names, names_to_ids = \
+            command._select_latest_rows('Loop.Loop__DDP__c', header, all_rows, ['Name'], False)
 
         self.assertEqual({tuple(['DDP Name']): ['', '2016-10-15T20:41:07.000Z', 'DDP Name']}, rows)
         self.assertEqual({'a1t7A000003SnqkQAC': tuple(['DDP Name'])}, ids_to_names)
@@ -69,9 +80,12 @@ class DdpPushIdsTest(unittest.TestCase):
         }
 
         command = self._setup_overwrite(True)
-        rows, ids_to_names = command._select_latest_rows(header, all_rows, ['Name'])
+        rows, ids_to_names, names_to_ids = \
+            command._select_latest_rows('Loop.Loop__DDP__c', header, all_rows, ['Name'], False)
 
-        self.assertEqual({tuple(['DDP Name']): ['F6B2A31C-8AF9-CD20-AF30-7191D98CEE85', '2016-10-15T20:41:07.000Z', 'DDP Name']}, rows)
+        self.assertEqual(
+            {tuple(['DDP Name']): ['F6B2A31C-8AF9-CD20-AF30-7191D98CEE85', '2016-10-15T20:41:07.000Z', 'DDP Name']},
+            rows)
         self.assertEqual({'a1t7A000003SnqkQAC': tuple(['DDP Name'])}, ids_to_names)
 
 if __name__ == '__main__':
