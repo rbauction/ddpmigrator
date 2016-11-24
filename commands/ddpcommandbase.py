@@ -168,13 +168,13 @@ class DdpCommandBase:
         return fields
 
     def _retrieve_data(self, dev_name, query):
-        return self._bapi.export_object(dev_name, query)
+        return self._bapi.export(dev_name, query)
 
     def _upsert_data(self, dev_name, csv_data, external_id_field):
-        return self._bapi.upsert_object(dev_name, csv_data, external_id_field)
+        return self._bapi.upsert(dev_name, csv_data, external_id_field)
 
     def _update_data(self, dev_name, csv_data):
-        return self._bapi.update_object(dev_name, csv_data)
+        return self._bapi.update(dev_name, csv_data)
 
     def do(self):
         raise NotImplementedError("Method do() is not overridden")
