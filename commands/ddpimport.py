@@ -318,11 +318,17 @@ class DdpImport(DdpCommandBase):
         for guid in parent_guids:
             if guid in parent_rows.keys():
                 parent_ids.append(parent_rows[guid][0])
+        # Abort deletion if there is nothing to delete
+        if len(parent_ids) == 0:
+            return
         # Retrieve IDs of children
         dev_namespace, dev_name = table_name.split('.')
         query = "SELECT Id FROM {0} WHERE {1} IN ('{2}')".format(dev_name, parent_key_field, "','".join(parent_ids))
         print("  Retrieving IDs of old records ...")
         ids_to_delete = self._retrieve_data(dev_name, query)
+        # Abort deletion if there is nothing to delete
+        if len(ids_to_delete) == 0:
+            return
         # Delete records by IDs
         print("  Deleting old records ...")
         self._delete_data(dev_name, ids_to_delete)
