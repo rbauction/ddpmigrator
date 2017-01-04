@@ -133,6 +133,8 @@ class DdpPushIds(DdpCommandBase):
         args = [
             "git",
             "ls-files",
+            "-c",
+            "-o",
             self._get_relative_data_dir()
         ]
         output_bytes = subprocess.check_output(args, cwd=self._source_dir)
@@ -153,6 +155,12 @@ class DdpPushIds(DdpCommandBase):
             full_filename = os.path.normpath(filename)
             table_name = self._extract_table_name_from_path(full_filename)
             files[table_name].append(full_filename)
+
+        if len(files) == 0:
+            raise Exception("Could not find any DDPs. Please check whether there are files in {0}/{1} directory".format(
+                self._source_dir,
+                self._get_relative_data_dir()
+            ))
 
         # Load data
         for table_name in self._table_settings:
@@ -239,7 +247,6 @@ class DdpPushIds(DdpCommandBase):
         temp_file.file.seek(0)
         csv_data = temp_file.read()
         # Update data in Salesforce
-        print("  Updating data in {0} table ...".format(table_name))
         status = self._update_data(dev_name, csv_data)
         if int(status['failed']) > 0:
             raise Exception("    Could not update {0} row(s)\n{1}".format(status['failed'], status['results']))
@@ -263,10 +270,16 @@ class DdpPushIds(DdpCommandBase):
             batch[row_id] = rows[row_id]
             row_count += 1
             if row_count % self._update_batch_size == 0:
+                print("  Updating data in {0} table ({1}/{2}) ...".format(
+                    table_name, row_count, len(rows)))
                 self._update_batch(table_name, batch)
                 batch = dict()
 
         if len(batch) > 0:
+            if len(batch) == row_count:
+                print("  Updating data in {0} table ...".format(table_name))
+            else:
+                print("  Updating data in {0} table ({1}/{2}) ...".format(table_name, row_count, len(rows)))
             self._update_batch(table_name, batch)
 
     def _update_ids(self):
@@ -278,7 +291,8 @@ class DdpPushIds(DdpCommandBase):
         while import_order < len(ordered_import_list):
             table_name = ordered_import_list[import_order]
             print("  Exporting {0} table ...".format(table_name))
-            self._data[table_name].update(self._export_unique_keys(table_name, not self._kwargs['overwrite']))
+            keys = self._export_unique_keys(table_name, not self._kwargs['overwrite'])
+            self._data[table_name].update(keys)
 
             if len(self._data[table_name]['rows']) == 0:
                 print("  No rows to update")
@@ -289,7 +303,8 @@ class DdpPushIds(DdpCommandBase):
                 self._update_table(table_name)
 
             # Download data again so we have GUIDs in memory
-            self._data[table_name].update(self._export_unique_keys(table_name, False))
+            keys = self._export_unique_keys(table_name, False)
+            self._data[table_name].update(keys)
             import_order += 1
 
     def do(self):
