@@ -180,16 +180,17 @@ class DdpImport(DdpCommandBase):
             'rows': rows
         }
 
-    def _update_lookup_field_values(self, table_name, lookup_field):
+    def _export_parent_table_ids(self, table_name):
         parent_namespace, parent_object = \
             self._table_settings[table_name]['parent-relationship']['parent-table'].split('.')
         parent_unique_key = self._table_settings[table_name]['parent-relationship']['parent-field']
-        id_field = 'Id'
-        query = 'SELECT {0},{1} FROM {2}'.format(id_field, parent_unique_key, parent_object)
+        query = 'SELECT Id,{0} FROM {1}'.format(parent_unique_key, parent_object)
         print("      Exporting {0} object from Salesforce ...".format(parent_object))
         parent_raw_data = self._retrieve_data(parent_object, query)
-        parent_header, parent_rows = csvhelper.load_csv_with_one_id_key(parent_raw_data, parent_unique_key)
+        return csvhelper.load_csv_with_one_id_key(parent_raw_data, parent_unique_key)
 
+    def _update_lookup_field_values(self, table_name, lookup_field):
+        parent_header, parent_rows = self._export_parent_table_ids(table_name)
         lookup_field_index = self._data[table_name]['header'].index(lookup_field)
         rows = self._data[table_name]['rows']
         for row_id in rows:
@@ -281,6 +282,8 @@ class DdpImport(DdpCommandBase):
             table_name = ordered_import_list[import_order]
             row_count = len(self._data[table_name]['rows'])
             print("Importing {0} table ({1} row(s))...".format(table_name, row_count))
+            if self._table_settings[table_name]['recreate-on-import']:
+                self._delete_records(table_name)
             should_retry = True
             last_count = -1
             while should_retry:
@@ -299,6 +302,28 @@ class DdpImport(DdpCommandBase):
                     self._data[table_name]['rows'] = rows_backup
                     last_count = encoded_row_count
             import_order += 1
+
+    def _delete_records(self, table_name):
+        """ Deletes records from specified table based on parent relationship """
+        # Find unique parent IDs
+        parent_ids = list()
+        parent_guids = list()
+        parent_key_field = self._table_settings[table_name]['parent-relationship']['field']
+        parent_key_field_index = self._data[table_name]['header'].index(parent_key_field)
+        for row_id, row in self._data[table_name]['rows'].items():
+            if row[parent_key_field_index] not in parent_guids:
+                parent_guids.append(row[parent_key_field_index])
+        # Convert parent GUIDs to record IDs
+        parent_header, parent_rows = self._export_parent_table_ids(table_name)
+        for guid in parent_guids:
+            if guid in parent_rows.keys():
+                parent_ids.append(parent_rows[guid][0])
+        # Retrieve IDs of children
+        dev_namespace, dev_name = table_name.split('.')
+        query = "SELECT Id FROM {0} WHERE {1} IN ('{2}')".format(dev_name, parent_key_field, "','".join(parent_ids))
+        ids_to_delete = self._retrieve_data(dev_name, query)
+        # Delete records by IDs
+        self._delete_data(dev_name, ids_to_delete)
 
     def _import_table(self, table_name):
         with open(os.path.join(self._import_tempdir, table_name), mode='r', encoding='utf-8') as csv_file:

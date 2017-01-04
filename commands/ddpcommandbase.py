@@ -176,5 +176,8 @@ class DdpCommandBase:
     def _update_data(self, dev_name, csv_data):
         return self._bapi.update(dev_name, csv_data)
 
+    def _delete_data(self, dev_name, csv_data):
+        return self._bapi.delete(dev_name, csv_data)
+
     def do(self):
         raise NotImplementedError("Method do() is not overridden")

@@ -47,16 +47,25 @@ def load_csv_with_one_id_key(csv_text, id_key):
     return header, rows
 
 
-def save_csv(filename, header, rows):
+def save_csv(file, header, rows):
     """ Saves table (header + rows) as CSV file """
-    with open(filename, "w", encoding="utf-8", newline='') as csv_file:
-        writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
-        writer.writerow(header)
-        keys = list(rows.keys())
-        # Saving CSV files sorted by unique key ensures 'git diff' will show only real changes
-        keys.sort()
-        for key in keys:
-            writer.writerow(rows[key])
+    should_close = True
+    if isinstance(file, str):
+        csv_file = open(file, 'w', encoding='utf-8', newline='')
+    else:
+        csv_file = file
+        should_close = False
+
+    writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+    writer.writerow(header)
+    keys = list(rows.keys())
+    # Saving CSV files sorted by unique key ensures 'git diff' will show only real changes
+    keys.sort()
+    for key in keys:
+        writer.writerow(rows[key])
+
+    if should_close:
+        csv_file.close()
 
 
 def save_csv_with_ids(file, header, rows, names_to_ids):
