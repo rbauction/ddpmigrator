@@ -73,7 +73,7 @@ def main():
     if args.ddp:
         kwargs['ddp'] = args.ddp
 
-    # Instantiate export or import class
+    # Choose command class name based on command
     if args.command == 'export':
         from commands.ddpexport import DdpExport
         class_ = DdpExport
@@ -90,8 +90,10 @@ def main():
 
     # Create instance of command class
     action = class_(settings, **kwargs)
+
     # Do the work
     action.do()
+
 
 if __name__ == "__main__":
     main()
