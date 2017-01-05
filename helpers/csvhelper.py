@@ -12,9 +12,9 @@ def load_csv_with_two_id_keys(csv_text, id_key, unique_key):
     # Remove Id column from the header
     del header[id_index]
 
-    id_to_uk = {}
-    uk_to_id = {}
-    rows = {}
+    id_to_uk = dict()
+    uk_to_id = dict()
+    rows = dict()
     for row in reader:
         uk = row[uk_index]
         row_id = row[id_index]
@@ -30,6 +30,9 @@ def load_csv_with_two_id_keys(csv_text, id_key, unique_key):
 
 def load_csv_with_one_id_key(csv_text, id_key):
     """ Loads CSV file from a string """
+    if len(csv_text) == 0:
+        return list(), dict()
+
     stream = io.StringIO(csv_text)
     reader = csv.reader(stream)
     header = next(reader)
@@ -37,7 +40,7 @@ def load_csv_with_one_id_key(csv_text, id_key):
     # Remove Id column from the header
     del header[id_index]
 
-    rows = {}
+    rows = dict()
     for row in reader:
         row_id = row[id_index]
         # Remove Id column

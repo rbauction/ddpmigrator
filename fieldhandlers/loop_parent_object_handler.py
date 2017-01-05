@@ -33,10 +33,11 @@ class LoopParentObjectHandler(FieldHandlerBase):
             return value
         header = self._required_data['Loop__Related_Object__c']['header']
         rows = self._required_data['Loop__Related_Object__c']['rows']
-        unique_index = header.index('DDP_Migrator_Id__c')
-        for row_id in rows:
-            if rows[row_id][unique_index] == value:
-                return row_id
+        if len(rows) > 0:
+            unique_index = header.index('DDP_Migrator_Id__c')
+            for row_id in rows:
+                if rows[row_id][unique_index] == value:
+                    return row_id
 
         if self._is_retry_failed:
             print("        Missing value: {0}".format(value))

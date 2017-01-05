@@ -81,7 +81,6 @@ class LoopDocumentIdHandler(FieldHandlerBase):
         raise Exception("Could not find document [{0}] in folder [{1}]".format(dev_name, folder_id))
 
     def _encode_one_value(self, value, value_row_id):
-
         folder_name, doc_dev_name = value.split('/')
         folder_id = self._lookup_folder_id_by_name(folder_name)
         return self._lookup_document_id_by_name(folder_id, doc_dev_name)
