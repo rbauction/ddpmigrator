@@ -2,6 +2,7 @@
 from helpers.yamlhelper import ordered_load
 
 import argparse
+import os
 import sys
 
 
@@ -44,9 +45,12 @@ def parse_command_line_args():
     return args
 
 
-def parse_settings():
+def parse_settings(filename):
     """ Loads and parses settings file """
-    file = open(SETTINGS_FILE)
+    # This is to handle PyInstaller --onefile packaging
+    if hasattr(sys, '_MEIPASS'):
+        filename = os.path.join(sys._MEIPASS, filename)
+    file = open(filename)
     settings = ordered_load(file)
     file.close()
     return settings
@@ -55,7 +59,7 @@ def parse_settings():
 def main():
     """ Main function """
     args = parse_command_line_args()
-    settings = parse_settings()
+    settings = parse_settings(SETTINGS_FILE)
 
     # Prepare kwargs for export/import
     kwargs = {

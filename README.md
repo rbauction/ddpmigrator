@@ -40,7 +40,7 @@ How to package Windows executable
 ---------------------------------
 Install PyInstaller and then run the following command:
 ```sh
-pyinstaller --onefile ddpmigrator.py
+pyinstaller ddpmigrator.spec
 ```
 Resulting exe file can be found in dist directory.
 
