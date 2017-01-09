@@ -116,6 +116,8 @@ class DdpExport(DdpCommandBase):
     def _save_child_data(self, table_name):
         header = self._data[table_name]['header']
         rows = self._data[table_name]['rows']
+        if len(rows) == 0:
+            return
         name_fields = self._table_settings[table_name]['name']
         if isinstance(name_fields, str):
             name_fields = [name_fields]
@@ -222,6 +224,8 @@ class DdpExport(DdpCommandBase):
         id_to_uk = self._data[parent_table]['IdToUk']
 
         rows = self._data[table_name]['rows']
+        if len(rows) == 0:
+            return
         header = self._data[table_name]['header']
         lookup_field_index = header.index(lookup_field)
         for row_id in rows:

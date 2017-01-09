@@ -21,6 +21,8 @@ class FieldHandlerBase:
     def decode(self):
         """ Converts sandbox specific data into sandbox-independent data (export) """
         rows = self._table_data['rows']
+        if len(rows) == 0:
+            return
         header = self._table_data['header']
         id_index = header.index(self._field_name)
         for row_id in rows:
