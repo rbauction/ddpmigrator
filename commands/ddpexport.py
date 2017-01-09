@@ -61,13 +61,27 @@ class DdpExport(DdpCommandBase):
         with open(file_name, 'w') as file:
             file.write(yaml.dump(obj, default_flow_style=False, explicit_start=False))
 
-    def _get_parent_data_file_name(self, table_name, entity_name):
-        """ loop/data/<Table-Name(s)>/<Table-Alias>.yaml """
-        encoded_entity_name = entity_name.replace('/', '%2f')
-        return os.path.join(self._get_data_dir(), *[
-            encoded_entity_name,
+    def _get_ddp_data_dir_name(self, ddp_name):
+        """ loop/data/<DDP-Name> """
+        encoded_ddp_name = ddp_name.replace('/', '%2f')
+        return os.path.join(self._get_data_dir(), encoded_ddp_name)
+
+    def _get_parent_data_file_name(self, ddp_name, table_name):
+        """ <DDP-Directory>/<Table-Alias>.yaml """
+        return os.path.join(
+            self._get_ddp_data_dir_name(ddp_name),
             "{0}.yaml".format(self._table_settings[table_name]['alias'])
-        ])
+        )
+
+    def _get_child_data_file_name(self, table_name, parent_id, entity_name):
+        """ <DDP-Directory>/<Table-Alias>/<Record-Name(s)>.yaml """
+        encoded_parent_name = self._get_parent_record_name(table_name, parent_id).replace('/', '%2f')
+        encoded_entity_name = entity_name.replace('/', '%2f')
+        return os.path.join(
+            self._get_data_dir(), *[
+                encoded_parent_name,
+                self._table_settings[table_name]['alias'],
+                "{0}.yaml".format(encoded_entity_name)])
 
     def _get_parent_record_name(self, table_name, parent_id):
         parent_table_name = self._table_settings[table_name]['parent-relationship']['parent-table']
@@ -82,16 +96,6 @@ class DdpExport(DdpCommandBase):
         for name_field_index in name_field_indexes:
             names.append(self._data[parent_table_name]['rows'][parent_id][name_field_index])
         return '-'.join(names)
-
-    def _get_child_data_file_name(self, table_name, parent_id, entity_name):
-        """ loop/data/<Parent-Table-Name(s)>/<Table-Alias>/<Table-Name(s)>.yaml """
-        encoded_parent_name = self._get_parent_record_name(table_name, parent_id).replace('/', '%2f')
-        encoded_entity_name = entity_name.replace('/', '%2f')
-        return os.path.join(
-            self._get_data_dir(), *[
-                encoded_parent_name,
-                self._table_settings[table_name]['alias'],
-                "{0}.yaml".format(encoded_entity_name)])
 
     def _save_parent_data(self, table_name):
         header = self._data[table_name]['header']
@@ -108,7 +112,7 @@ class DdpExport(DdpCommandBase):
             for name_field_index in name_field_indexes:
                 names.append(row[name_field_index])
             self._persist_row(
-                self._get_parent_data_file_name(table_name, '-'.join(names)),
+                self._get_parent_data_file_name('-'.join(names), table_name),
                 header,
                 row
             )
@@ -293,6 +297,18 @@ class DdpExport(DdpCommandBase):
     def _create_directories(self):
         loop_dir = self._get_loop_dir()
         data_dir = self._get_data_dir()
+
+        # Delete DDP directories (so deleted records don't persist after export)
+        if os.path.exists(data_dir) and os.path.isdir(data_dir):
+            if 'ddp' in self._kwargs:
+                # Delete DDP directories listed in the command line
+                for ddp_name in self._kwargs['ddp']:
+                    ddp_dir_name = self._get_ddp_data_dir_name(ddp_name)
+                    if os.path.exists(ddp_dir_name) and os.path.isdir(ddp_dir_name):
+                        shutil.rmtree(ddp_dir_name)
+            else:
+                # Delete data directory if we pull down all DDPs
+                shutil.rmtree(data_dir)
 
         if not os.path.exists(loop_dir):
             print("  Creating new source directory {0} ...".format(loop_dir))
