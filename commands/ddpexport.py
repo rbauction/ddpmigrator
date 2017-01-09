@@ -294,18 +294,6 @@ class DdpExport(DdpCommandBase):
         loop_dir = self._get_loop_dir()
         data_dir = self._get_data_dir()
 
-        # Recreate loop and data directories if we export all data and files
-        # If current source directory exists, rename it and create a new one
-        if os.path.exists(loop_dir) and os.path.isdir(loop_dir) and 'ddp' not in self._kwargs:
-            backup_dir = '{0}-backup'.format(loop_dir)
-            if os.path.exists(backup_dir):
-                if os.path.isdir(backup_dir):
-                    shutil.rmtree(backup_dir)
-                else:
-                    os.remove(backup_dir)
-            print("  Renaming {0} directory as {1} ...".format(loop_dir, backup_dir))
-            os.rename(loop_dir, backup_dir)
-
         if not os.path.exists(loop_dir):
             print("  Creating new source directory {0} ...".format(loop_dir))
             os.mkdir(loop_dir)
