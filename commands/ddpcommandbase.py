@@ -6,6 +6,7 @@ from sfdclib import \
     SfdcToolingApi
 
 import fieldhandlers
+import logging
 import os
 
 
@@ -34,6 +35,8 @@ class DdpCommandBase:
         self._forward = dict()
         self._reverse = dict()
         self._resolve_dependencies()
+        # Logger
+        self._logger = logging.getLogger('root')
 
     @staticmethod
     def _locate_handler_class(class_name):

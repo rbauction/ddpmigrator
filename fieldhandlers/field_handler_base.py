@@ -1,4 +1,5 @@
 """ Base field handler class """
+import logging
 
 
 class FieldHandlerBase:
@@ -14,6 +15,8 @@ class FieldHandlerBase:
         self._required_data = None
         self._is_retry_failed = is_retry_failed
         self._retry_row_ids = list()
+        # Logger
+        self._logger = logging.getLogger('root')
 
     def _decode_one_value(self, value):
         raise NotImplementedError("_decode_one_value method has not been overridden")

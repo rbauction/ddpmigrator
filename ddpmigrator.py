@@ -1,4 +1,5 @@
 """ DDP migration tool """
+from helpers.log import setup_custom_logger
 from helpers.yamlhelper import ordered_load
 
 import argparse
@@ -58,8 +59,12 @@ def parse_settings(filename):
 
 def main():
     """ Main function """
+    logger = setup_custom_logger('root')
+
     args = parse_command_line_args()
     settings = parse_settings(SETTINGS_FILE)
+
+    logger.debug("Command: {0}".format(args.command))
 
     # Prepare kwargs for export/import
     kwargs = {

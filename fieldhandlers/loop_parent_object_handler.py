@@ -40,7 +40,7 @@ class LoopParentObjectHandler(FieldHandlerBase):
                     return row_id
 
         if self._is_retry_failed:
-            print("        Missing value: {0}".format(value))
+            self._logger.info("        Missing value: {0}".format(value))
             if value_row_id not in self._retry_row_ids:
                 self._retry_row_ids.append(value_row_id)
             return value

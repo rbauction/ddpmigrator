@@ -191,7 +191,7 @@ class DdpExport(DdpCommandBase):
 
         # Export all tables first using Bulk API
         for table_name in self._table_settings:
-            print("  Exporting table: {0} ...".format(table_name))
+            self._logger.info("  Exporting table: {0} ...".format(table_name))
             self._data[table_name] = self._export_table(table_name)
 
         # Load CSV from string and create maps ID -> Unique key and Unique key -> ID in memory
@@ -205,7 +205,7 @@ class DdpExport(DdpCommandBase):
         # Replace IDs with external IDs (unique-key) and handle special fields
         for table_name in self._table_settings:
             table_settings = self._table_settings[table_name]
-            print("  Translating IDs in table {0} ...".format(table_name))
+            self._logger.info("  Translating IDs in table {0} ...".format(table_name))
 
             # Replace ID values of lookup fields with unique key values
             if 'parent-relationship' in table_settings:
@@ -214,7 +214,7 @@ class DdpExport(DdpCommandBase):
             # Execute special field handlers
             if 'field-handlers' in table_settings:
                 for field_name in table_settings['field-handlers']:
-                    print("    Field: {0}".format(field_name))
+                    self._logger.info("    Field: {0}".format(field_name))
                     self._decode_field(table_name, field_name)
 
         # Save data
@@ -223,7 +223,7 @@ class DdpExport(DdpCommandBase):
     def _replace_lookup_id_with_uk(self, table_name):
         table_settings = self._table_settings[table_name]
         lookup_field = table_settings['parent-relationship']['field']
-        print("    Field: {0}".format(lookup_field))
+        self._logger.info("    Field: {0}".format(lookup_field))
         parent_table = table_settings['parent-relationship']['parent-table']
         id_to_uk = self._data[parent_table]['IdToUk']
 
@@ -283,7 +283,7 @@ class DdpExport(DdpCommandBase):
 
         # Print out any warnings
         for message in messages:
-            print("File: {0} Message: {1}".format(messages[message]['file'], messages[message]['message']))
+            self._logger.info("File: {0} Message: {1}".format(messages[message]['file'], messages[message]['message']))
 
         if state == "Succeeded":
             state, error_message, messages, zip_bytes = self._mapi.retrieve_zip(async_process_id)
@@ -311,22 +311,22 @@ class DdpExport(DdpCommandBase):
                 shutil.rmtree(data_dir)
 
         if not os.path.exists(loop_dir):
-            print("  Creating new source directory {0} ...".format(loop_dir))
+            self._logger.info("  Creating new source directory {0} ...".format(loop_dir))
             os.mkdir(loop_dir)
 
         if not os.path.exists(data_dir):
-            print("  Creating data directory {0} ...".format(data_dir))
+            self._logger.info("  Creating data directory {0} ...".format(data_dir))
             os.mkdir(data_dir)
 
     def do(self):
-        print("==> Creating directories ...")
+        self._logger.info("==> Creating directories ...")
         self._create_directories()
 
-        print("==> Connecting to Salesforce using {0} account ...".format(self._kwargs['username']))
+        self._logger.info("==> Connecting to Salesforce using {0} account ...".format(self._kwargs['username']))
         self._create_sfdc_session()
 
-        print("==> Exporting data ...")
+        self._logger.info("==> Exporting data ...")
         self._export_data()
 
-        print("==> Retrieving DDP files ...")
+        self._logger.info("==> Retrieving DDP files ...")
         self._retrieve_files()

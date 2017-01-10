@@ -130,14 +130,14 @@ class DdpImport(DdpCommandBase):
             # Skip meta files
             if filename.endswith('-meta.xml'):
                 continue
-            print("  Added: {0}".format(filename))
+            self._logger.info("  Added: {0}".format(filename))
             self._copy_file_to_temp(filename)
         # Process changed files
         for filename in self._file_changes['modified']:
             # Skip meta files
             if filename.endswith('-meta.xml'):
                 continue
-            print("  Modified: {0}".format(filename))
+            self._logger.info("  Modified: {0}".format(filename))
             self._copy_file_to_temp(filename)
 
     def _create_temp_dirs(self):
@@ -158,7 +158,7 @@ class DdpImport(DdpCommandBase):
     def _find_changed_tables(self):
         file_names = self._data_changes['added'] + self._data_changes['modified']
         for file_name in file_names:
-            print("Processing: {0}".format(file_name))
+            self._logger.info("Processing: {0}".format(file_name))
             tail = os.path.basename(file_name)
             if not tail.endswith('.yaml'):
                 raise Exception(".yaml extension was expected")
@@ -185,7 +185,7 @@ class DdpImport(DdpCommandBase):
             self._table_settings[table_name]['parent-relationship']['parent-table'].split('.')
         parent_unique_key = self._table_settings[table_name]['parent-relationship']['parent-field']
         query = 'SELECT Id,{0} FROM {1}'.format(parent_unique_key, parent_object)
-        print("      Exporting {0} object from Salesforce ...".format(parent_object))
+        self._logger.info("      Exporting {0} object from Salesforce ...".format(parent_object))
         parent_raw_data = self._retrieve_data(parent_object, query)
         return csvhelper.load_csv_with_one_id_key(parent_raw_data, parent_unique_key)
 
@@ -208,7 +208,7 @@ class DdpImport(DdpCommandBase):
         # Load parents
         for parent in self._reverse[table_name]:
             self._load_table(parent)
-        print("Loading {0} table ...".format(table_name))
+        self._logger.info("Loading {0} table ...".format(table_name))
 
         # Load table into memory
         self._data[table_name] = self._load_changed_rows(self._changed_tables[table_name])
@@ -226,7 +226,7 @@ class DdpImport(DdpCommandBase):
         tables_to_load = handler.tables_required_by_encode()
         required_data = {}
         for table_to_load in tables_to_load:
-            print("      Exporting {0} object from Salesforce ...".format(table_to_load))
+            self._logger.info("      Exporting {0} object from Salesforce ...".format(table_to_load))
             raw_data = self._retrieve_data(table_to_load, tables_to_load[table_to_load]['query'])
             header, rows = csvhelper.load_csv_with_one_id_key(raw_data, tables_to_load[table_to_load]['id'])
             required_data[table_to_load] = {
@@ -249,19 +249,19 @@ class DdpImport(DdpCommandBase):
         is_retry_failed = False
         table_settings = self._table_settings[table_name]
         # Replace IDs with external IDs (lookup fields) and handle special fields
-        print("  Translating IDs in table {0} ...".format(table_name))
+        self._logger.info("  Translating IDs in table {0} ...".format(table_name))
 
         # Convert lookup field values
         if 'parent-relationship' in table_settings:
             lookup_field = table_settings['parent-relationship']['field']
-            print("    Field: {0}".format(lookup_field))
+            self._logger.info("    Field: {0}".format(lookup_field))
             self._update_lookup_field_values(table_name, lookup_field)
 
         encoded_rows = dict()
         # Execute special field handlers
         if 'field-handlers' in table_settings:
             for field_name in table_settings['field-handlers']:
-                print("    Field: {0}".format(field_name))
+                self._logger.info("    Field: {0}".format(field_name))
                 if 'retry-failed' in table_settings['field-handlers'][field_name]:
                     is_retry_failed |= bool(table_settings['field-handlers'][field_name]['retry-failed'])
                 encoded_rows = self._encode_field(table_name, field_name)
@@ -281,7 +281,7 @@ class DdpImport(DdpCommandBase):
         while import_order < len(ordered_import_list):
             table_name = ordered_import_list[import_order]
             row_count = len(self._data[table_name]['rows'])
-            print("Importing {0} table ({1} row(s))...".format(table_name, row_count))
+            self._logger.info("Importing {0} table ({1} row(s))...".format(table_name, row_count))
             if self._table_settings[table_name]['recreate-on-import']:
                 self._delete_records(table_name)
             should_retry = True
@@ -291,14 +291,14 @@ class DdpImport(DdpCommandBase):
                 is_retry_failed, encoded_rows = self._convert_field_values(table_name)
                 self._save_table_as_csv(table_name, encoded_rows)
                 encoded_row_count = len(encoded_rows)
-                print("  Upserting {0} row(s) ...".format(encoded_row_count))
+                self._logger.info("  Upserting {0} row(s) ...".format(encoded_row_count))
                 self._import_table(table_name)
                 if last_count == encoded_row_count:
                     raise Exception("Unable to import {0} row(s)".format(row_count - encoded_row_count))
                 if not is_retry_failed or encoded_row_count == row_count:
                     should_retry = False
                 else:
-                    print("  Could not import {0} row(s). Will retry ...".format(row_count - encoded_row_count))
+                    self._logger.info("  Could not import {0} row(s). Will retry ...".format(row_count - encoded_row_count))
                     self._data[table_name]['rows'] = rows_backup
                     last_count = encoded_row_count
             import_order += 1
@@ -324,13 +324,13 @@ class DdpImport(DdpCommandBase):
         # Retrieve IDs of children
         dev_namespace, dev_name = table_name.split('.')
         query = "SELECT Id FROM {0} WHERE {1} IN ('{2}')".format(dev_name, parent_key_field, "','".join(parent_ids))
-        print("  Retrieving IDs of old records ...")
+        self._logger.info("  Retrieving IDs of old records ...")
         ids_to_delete = self._retrieve_data(dev_name, query)
         # Abort deletion if there is nothing to delete
         if len(ids_to_delete) == 0:
             return
         # Delete records by IDs
-        print("  Deleting old records ...")
+        self._logger.info("  Deleting old records ...")
         self._delete_data(dev_name, ids_to_delete)
 
     def _import_table(self, table_name):
@@ -382,13 +382,13 @@ class DdpImport(DdpCommandBase):
             'testlevel': 'NoTestRun'
         }
         deployment_id, deployment_state = self._mapi.deploy(zip_file, options)
-        print("  State: {0}".format(deployment_state))
+        self._logger.info("  State: {0}".format(deployment_state))
         while deployment_state in ['Queued', 'Pending', 'InProgress']:
             time.sleep(5)
             deployment_state, state_detail, deployment_detail, unit_test_detail = \
                 self._mapi.check_deploy_status(deployment_id)
             if state_detail is None:
-                print("  State: {0}".format(deployment_state))
+                self._logger.info("  State: {0}".format(deployment_state))
             else:
                 if int(deployment_detail['deployed_count']) + \
                         int(deployment_detail['failed_count']) < \
@@ -404,21 +404,21 @@ class DdpImport(DdpCommandBase):
                         unit_test_detail['total_count']
                     )
 
-                print("  State: {0} - {1}{2}".format(deployment_state, progress, state_detail))
+                self._logger.info("  State: {0} - {1}{2}".format(deployment_state, progress, state_detail))
 
         if deployment_state != 'Succeeded':
             raise Exception('Deployment of documents failed')
 
     def do(self):
-        print("==> Calculating delta ...")
+        self._logger.info("==> Calculating delta ...")
         self._calculate_delta()
 
-        print("==> Connecting to Salesforce using {0} account ...".format(self._kwargs['username']))
+        self._logger.info("==> Connecting to Salesforce using {0} account ...".format(self._kwargs['username']))
         self._create_sfdc_session()
 
         # Documents need to be imported first so we can reference Document Id in Loop__DDP_File__c
-        print("==> Importing documents ...")
+        self._logger.info("==> Importing documents ...")
         self._import_files()
 
-        print("==> Importing data ...")
+        self._logger.info("==> Importing data ...")
         self._import_data()

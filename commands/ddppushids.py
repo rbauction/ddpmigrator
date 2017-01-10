@@ -164,7 +164,7 @@ class DdpPushIds(DdpCommandBase):
 
         # Load data
         for table_name in self._table_settings:
-            print("  Loading {0} table ...".format(table_name))
+            self._logger.info("  Loading {0} table ...".format(table_name))
             header, rows = yamlhelper.load_multiple_yaml(files[table_name], self._unique_key, self._source_dir)
             self._data[table_name] = {
                 'src_header': header,
@@ -270,16 +270,16 @@ class DdpPushIds(DdpCommandBase):
             batch[row_id] = rows[row_id]
             row_count += 1
             if row_count % self._update_batch_size == 0:
-                print("  Updating data in {0} table ({1}/{2}) ...".format(
+                self._logger.info("  Updating data in {0} table ({1}/{2}) ...".format(
                     table_name, row_count, len(rows)))
                 self._update_batch(table_name, batch)
                 batch = dict()
 
         if len(batch) > 0:
             if len(batch) == row_count:
-                print("  Updating data in {0} table ...".format(table_name))
+                self._logger.info("  Updating data in {0} table ...".format(table_name))
             else:
-                print("  Updating data in {0} table ({1}/{2}) ...".format(table_name, row_count, len(rows)))
+                self._logger.info("  Updating data in {0} table ({1}/{2}) ...".format(table_name, row_count, len(rows)))
             self._update_batch(table_name, batch)
 
     def _update_ids(self):
@@ -290,12 +290,12 @@ class DdpPushIds(DdpCommandBase):
         import_order = 0
         while import_order < len(ordered_import_list):
             table_name = ordered_import_list[import_order]
-            print("  Exporting {0} table ...".format(table_name))
+            self._logger.info("  Exporting {0} table ...".format(table_name))
             keys = self._export_unique_keys(table_name, not self._kwargs['overwrite'])
             self._data[table_name].update(keys)
 
             if len(self._data[table_name]['rows']) == 0:
-                print("  No rows to update")
+                self._logger.info("  No rows to update")
             else:
                 # Replace Ids with GUIDs from source directory
                 self._replace_id_values(table_name)
@@ -308,11 +308,11 @@ class DdpPushIds(DdpCommandBase):
             import_order += 1
 
     def do(self):
-        print("==> Loading data from source directory ...")
+        self._logger.info("==> Loading data from source directory ...")
         self._load_data()
 
-        print("==> Connecting to Salesforce using {0} account ...".format(self._kwargs['username']))
+        self._logger.info("==> Connecting to Salesforce using {0} account ...".format(self._kwargs['username']))
         self._create_sfdc_session()
 
-        print("==> Updating IDs ...")
+        self._logger.info("==> Updating IDs ...")
         self._update_ids()
