@@ -3,6 +3,10 @@
     <types>
         <name>ApexClass</name>
         <members>GUIDGenerator</members>
+        <members>PopulateGuidDDPTest</members>
+        <members>PopulateGuidDDPFileTest</members>
+        <members>PopulateGuidDDPIntegrationOptionTest</members>
+        <members>PopulateGuidRelatedObjectTest</members>
     </types>
     <types>
         <name>ApexTrigger</name>
