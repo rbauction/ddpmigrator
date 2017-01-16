@@ -59,7 +59,8 @@ class LoopSecurityHandler(FieldHandlerBase):
             elif security_id in self._required_data['UserRole']['rows']:
                 table_name = 'UserRole'
             else:
-                raise Exception("Could not find {0} id in Profile, PermissionSet, Group and UserRole tables")
+                raise Exception(
+                    "Could not find {0} id in Profile, PermissionSet, Group and UserRole tables".format(security_id))
 
             row = self._required_data[table_name]['rows'][security_id]
             security_names.append("{0}.{1}".format(table_name, row[name_index]))
