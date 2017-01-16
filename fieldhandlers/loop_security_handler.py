@@ -50,19 +50,19 @@ class LoopSecurityHandler(FieldHandlerBase):
         security_names = []
         for quoted_profile_id in value.split(','):
             security_id = quoted_profile_id.replace("'", "")
-            if security_id in self._required_data['Profile']['rows']:
+            if self._is_id_in_list(security_id, 'Profile'):
                 table_name = 'Profile'
-            elif security_id in self._required_data['PermissionSet']['rows']:
+            elif self._is_id_in_list(security_id, 'PermissionSet'):
                 table_name = 'PermissionSet'
-            elif security_id in self._required_data['Group']['rows']:
+            elif self._is_id_in_list(security_id, 'Group'):
                 table_name = 'Group'
-            elif security_id in self._required_data['UserRole']['rows']:
+            elif self._is_id_in_list(security_id, 'UserRole'):
                 table_name = 'UserRole'
             else:
                 raise Exception(
                     "Could not find {0} id in Profile, PermissionSet, Group and UserRole tables".format(security_id))
 
-            row = self._required_data[table_name]['rows'][security_id]
+            row = self._get_value_by_id(security_id, table_name)
             security_names.append("{0}.{1}".format(table_name, row[name_index]))
         security_names.sort()
         return "\n".join(security_names)

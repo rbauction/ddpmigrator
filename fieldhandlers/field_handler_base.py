@@ -50,6 +50,26 @@ class FieldHandlerBase:
             row_list[id_index] = encoded_value
             rows[row_id] = tuple(row_list)
 
+    def _is_id_in_list(self, record_id, table_name):
+        """ Checks whether 18 or 15 characters long Salesforce ID is in list """
+        for index in self._required_data[table_name]['rows']:
+            if record_id == index \
+               or record_id[:15] == index \
+               or record_id == index[:15] \
+               or record_id[:15] == index[:15]:
+                return True
+        return False
+
+    def _get_value_by_id(self, record_id, table_name):
+        """ Checks whether 18 or 15 characters long Salesforce ID is in list """
+        for index in self._required_data[table_name]['rows']:
+            if record_id == index \
+               or record_id[:15] == index \
+               or record_id == index[:15] \
+               or record_id[:15] == index[:15]:
+                return self._required_data[table_name]['rows'][index]
+        raise Exception("Could not find {0} record in {1} table".format(record_id, table_name))
+
     def tables_required_by_decode(self):
         return self._TABLES_REQUIRED_BY_DECODE
 
