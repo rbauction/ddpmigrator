@@ -5,6 +5,7 @@ from collections import OrderedDict
 
 # Loads YAML as an ordered list
 def ordered_load(stream, loader_class=yaml.SafeLoader, object_pairs_hook=OrderedDict):
+    # noinspection PyClassHasNoInit
     class OrderedLoader(loader_class):
         pass
 

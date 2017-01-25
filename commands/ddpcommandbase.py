@@ -109,6 +109,7 @@ class DdpCommandBase:
         rel_path = os.path.relpath(file_name, self._get_relative_data_dir())
         table_alias = rel_path.split('\\')[1]
         # Remove '.yaml' for parent table files
+        # noinspection PyTypeChecker
         if table_alias.endswith('.yaml'):
             table_alias = table_alias[:-5]
         return self._lookup_table_name_by_alias(table_alias)

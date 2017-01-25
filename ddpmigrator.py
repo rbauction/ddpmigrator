@@ -16,7 +16,8 @@ def parse_command_line_args():
     parser = argparse.ArgumentParser(description='Export/import tool for Drawloop DDPs')
     parser.add_argument('command', choices=('export', 'import', 'push-ids'))
     parser.add_argument('--overwrite', dest='overwrite', action='store_true',
-                        help='use this switch when GUID fields in Salesforce has to be overwritten with data from source directory')
+                        help='use this switch when GUID fields in Salesforce have to be overwritten with data from'
+                        ' source directory')
     parser.add_argument('--sandbox', dest='sandbox', action='store_true',
                         help='use this switch when working with sandbox')
     parser.add_argument('-v', '--version', type=str, default='37.0',
@@ -50,6 +51,7 @@ def parse_settings(filename):
     """ Loads and parses settings file """
     # This is to handle PyInstaller --onefile packaging
     if hasattr(sys, '_MEIPASS'):
+        # noinspection PyProtectedMember
         filename = os.path.join(sys._MEIPASS, filename)
     file = open(filename)
     settings = ordered_load(file)
