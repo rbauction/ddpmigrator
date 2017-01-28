@@ -59,7 +59,7 @@ class DdpExport(DdpCommandBase):
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)
         with open(file_name, 'w') as file:
-            file.write(yaml.dump(obj, default_flow_style=False, explicit_start=False))
+            file.write(yaml.dump(obj, default_flow_style=False, explicit_start=False, width=1024))
 
     def _get_ddp_data_dir_name(self, ddp_name):
         """ loop/data/<DDP-Name> """
