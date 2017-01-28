@@ -106,8 +106,7 @@ class DdpExport(DdpCommandBase):
         name_field_indexes = list()
         for name_field in name_fields:
             name_field_indexes.append(header.index(name_field))
-        for row_index in rows:
-            row = rows[row_index]
+        for row_id, row in rows.items():
             names = list()
             for name_field_index in name_field_indexes:
                 names.append(row[name_field_index])
@@ -129,8 +128,7 @@ class DdpExport(DdpCommandBase):
         for name_field in name_fields:
             name_field_indexes.append(header.index(name_field))
         parent_id_index = header.index(self._table_settings[table_name]['parent-relationship']['field'])
-        for row_index in rows:
-            row = rows[row_index]
+        for row_id, row in rows.items():
             names = list()
             for name_field_index in name_field_indexes:
                 names.append(row[name_field_index])
@@ -146,8 +144,8 @@ class DdpExport(DdpCommandBase):
         yaml.add_representer(OrderedDict, ordered_dict_presenter)
 
         table_settings = self._table_settings
-        for table_name in table_settings:
-            if 'parent-relationship' in table_settings[table_name]:
+        for table_name, settings in table_settings.items():
+            if 'parent-relationship' in settings:
                 self._save_child_data(table_name)
             else:
                 self._save_parent_data(table_name)
@@ -167,8 +165,7 @@ class DdpExport(DdpCommandBase):
 
         # Find the latest modified DDPs
         names = dict()
-        for row_id in rows:
-            row = rows[row_id]
+        for row_id, row in rows.items():
             name = row[name_index]
             last_modified_date = datetime.strptime(row[date_index], '%Y-%m-%dT%H:%M:%S.%fZ')
             if name in names:
@@ -179,8 +176,8 @@ class DdpExport(DdpCommandBase):
 
         # Extract Ids of the DDPs found above
         self._ddp_ids = list()
-        for name in names:
-            self._ddp_ids.append(names[name]['id'])
+        for index, name in names.items():
+            self._ddp_ids.append(name['id'])
 
     def _export_data(self):
         # Check whether we need to export just a few DDPs
@@ -203,17 +200,16 @@ class DdpExport(DdpCommandBase):
                     self._data[table_name]['raw_data'], 'Id', self._unique_key)
 
         # Replace IDs with external IDs (unique-key) and handle special fields
-        for table_name in self._table_settings:
-            table_settings = self._table_settings[table_name]
+        for table_name, settings in self._table_settings.items():
             self._logger.info("  Translating IDs in table {0} ...".format(table_name))
 
             # Replace ID values of lookup fields with unique key values
-            if 'parent-relationship' in table_settings:
+            if 'parent-relationship' in settings:
                 self._replace_lookup_id_with_uk(table_name)
 
             # Execute special field handlers
-            if 'field-handlers' in table_settings:
-                for field_name in table_settings['field-handlers']:
+            if 'field-handlers' in settings:
+                for field_name in settings['field-handlers']:
                     self._logger.info("    Field: {0}".format(field_name))
                     self._decode_field(table_name, field_name)
 
@@ -232,8 +228,7 @@ class DdpExport(DdpCommandBase):
             return
         header = self._data[table_name]['header']
         lookup_field_index = header.index(lookup_field)
-        for row_id in rows:
-            row = rows[row_id]
+        for row_id, row in rows.items():
             row[lookup_field_index] = id_to_uk[row[lookup_field_index]]
 
     def _decode_field(self, table_name, field_name):
@@ -244,10 +239,10 @@ class DdpExport(DdpCommandBase):
         # Check whether handler class needs any other tables to be loaded
         tables_to_load = handler.tables_required_by_decode()
         required_data = {}
-        for table_to_load in tables_to_load:
-            raw_data = self._retrieve_data(table_to_load, tables_to_load[table_to_load]['query'])
-            header, rows = csvhelper.load_csv_with_one_id_key(raw_data, tables_to_load[table_to_load]['id'])
-            required_data[table_to_load] = {
+        for table_to_load_name, table_to_load in tables_to_load.items():
+            raw_data = self._retrieve_data(table_to_load_name, table_to_load['query'])
+            header, rows = csvhelper.load_csv_with_one_id_key(raw_data, table_to_load['id'])
+            required_data[table_to_load_name] = {
                 'header': header,
                 'rows': rows
             }
@@ -262,8 +257,8 @@ class DdpExport(DdpCommandBase):
         document_index = header.index('Loop__Document_ID__c')
 
         documents = []
-        for row_id in rows:
-            documents.append(rows[row_id][document_index])
+        for row_id, row in rows.items():
+            documents.append(row[document_index])
 
         return documents
 
@@ -283,7 +278,7 @@ class DdpExport(DdpCommandBase):
 
         # Print out any warnings
         for message in messages:
-            self._logger.info("File: {0} Message: {1}".format(messages[message]['file'], messages[message]['message']))
+            self._logger.info("File: {0} Message: {1}".format(message['file'], message['message']))
 
         if state == "Succeeded":
             state, error_message, messages, zip_bytes = self._mapi.retrieve_zip(async_process_id)

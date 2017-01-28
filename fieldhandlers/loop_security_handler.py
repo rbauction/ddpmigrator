@@ -71,8 +71,8 @@ class LoopSecurityHandler(FieldHandlerBase):
         header = self._required_data[table_name]['header']
         rows = self._required_data[table_name]['rows']
         name_index = header.index('Name')
-        for row_id in rows:
-            if security_name == rows[row_id][name_index]:
+        for row_id, row in rows.items():
+            if security_name == row[name_index]:
                 return row_id
         raise Exception("Could not convert value [{0}]".format(security_name))
 

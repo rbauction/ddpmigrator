@@ -28,8 +28,7 @@ class FieldHandlerBase:
             return
         header = self._table_data['header']
         id_index = header.index(self._field_name)
-        for row_id in rows:
-            row = rows[row_id]
+        for row_id, row in rows.items():
             decoded_value = self._decode_one_value(row[id_index])
             row[id_index] = decoded_value
 
@@ -42,8 +41,7 @@ class FieldHandlerBase:
         self._retry_row_ids = list()
         header = self._table_data['header']
         id_index = header.index(self._field_name)
-        for row_id in rows:
-            row = rows[row_id]
+        for row_id, row in rows.items():
             encoded_value = self._encode_one_value(row[id_index], row_id)
             # Tuple can't be updated so create a list, update it and then convert it to tuple
             row_list = list(row)
@@ -62,12 +60,12 @@ class FieldHandlerBase:
 
     def _get_value_by_id(self, record_id, table_name):
         """ Checks whether 18 or 15 characters long Salesforce ID is in list """
-        for index in self._required_data[table_name]['rows']:
+        for index, row in self._required_data[table_name]['rows'].items():
             if record_id == index \
                or record_id[:15] == index \
                or record_id == index[:15] \
                or record_id[:15] == index[:15]:
-                return self._required_data[table_name]['rows'][index]
+                return row
         raise Exception("Could not find {0} record in {1} table".format(record_id, table_name))
 
     def tables_required_by_decode(self):
@@ -84,9 +82,9 @@ class FieldHandlerBase:
         if not self._is_retry_failed:
             return rows
         encoded_rows = dict()
-        for row_id in rows:
+        for row_id, row in rows.items():
             if row_id not in self._retry_row_ids:
-                encoded_rows[row_id] = rows[row_id]
+                encoded_rows[row_id] = row
         return encoded_rows
 
     def should_retry(self):

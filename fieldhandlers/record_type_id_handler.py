@@ -34,8 +34,7 @@ class RecordTypeIdHandler(FieldHandlerBase):
         s_obj_type_index = header.index('SobjectType')
         dev_name_index = header.index('DeveloperName')
         namespace, s_obj_type, dev_name = value.split('.')
-        for row_id in rows:
-            row = rows[row_id]
+        for row_id, row in rows.items():
             if namespace == row[namespace_index] \
                and s_obj_type == row[s_obj_type_index] \
                and dev_name == row[dev_name_index]:

@@ -35,8 +35,8 @@ class LoopParentObjectHandler(FieldHandlerBase):
         rows = self._required_data['Loop__Related_Object__c']['rows']
         if len(rows) > 0:
             unique_index = header.index('DDP_Migrator_Id__c')
-            for row_id in rows:
-                if rows[row_id][unique_index] == value:
+            for row_id, row in rows.items():
+                if row[unique_index] == value:
                     return row_id
 
         if self._is_retry_failed:

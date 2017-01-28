@@ -60,8 +60,7 @@ class LoopDocumentIdHandler(FieldHandlerBase):
         namespace_index = header.index('NamespacePrefix')
         dev_name_index = header.index('DeveloperName')
 
-        for row_id in rows:
-            row = rows[row_id]
+        for row_id, row in rows.items():
             if row[namespace_index] == namespace and row[dev_name_index] == dev_name:
                 return row_id
 
@@ -73,8 +72,7 @@ class LoopDocumentIdHandler(FieldHandlerBase):
         folder_id_index = header.index('FolderId')
         dev_name_index = header.index('DeveloperName')
 
-        for row_id in rows:
-            row = rows[row_id]
+        for row_id, row in rows.items():
             if row[folder_id_index] == folder_id and row[dev_name_index] == dev_name:
                 return row_id
 
