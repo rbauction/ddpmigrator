@@ -10,7 +10,7 @@ class DdpPushIds(DdpCommandBase):
     """ Class handling export command """
     def __init__(self, settings, **kwargs):
         super().__init__(settings, **kwargs)
-        self._data = {}
+        self._data = dict()
         self._ddp_ids = None
 
     def _select_latest_rows(self, table_name, header, rows, names, select_empty_ext_id_only):

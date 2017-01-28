@@ -24,12 +24,12 @@ class DdpImport(DdpCommandBase):
     """ Class handling import command """
     def __init__(self, settings, **kwargs):
         super().__init__(settings, **kwargs)
-        self._data = {}
+        self._data = dict()
         self._data_tempdir = None
         self._file_tempdir = None
         self._import_tempdir = None
-        self._data_changes = {'modified': [], 'added': []}
-        self._file_changes = {'modified': [], 'added': []}
+        self._data_changes = {'modified': list(), 'added': list()}
+        self._file_changes = {'modified': list(), 'added': list()}
         self._changed_tables = dict()
         self._loaded_tables = list()
 
@@ -224,7 +224,7 @@ class DdpImport(DdpCommandBase):
         handler = handler_class(self._data[table_name], field_name, is_retry_failed)
         # Check whether handler class needs any other tables to be loaded
         tables_to_load = handler.tables_required_by_encode()
-        required_data = {}
+        required_data = dict()
         for table_to_load in tables_to_load:
             self._logger.info("      Exporting {0} object from Salesforce ...".format(table_to_load))
             raw_data = self._retrieve_data(table_to_load, tables_to_load[table_to_load]['query'])

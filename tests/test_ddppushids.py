@@ -6,7 +6,7 @@ class DdpPushIdsTest(unittest.TestCase):
     @staticmethod
     def _setup_overwrite(overwrite):
         settings = {
-            'excluded-fields': [],
+            'excluded-fields': list(),
             'unique-key': 'DDP_Migrator_Id__c',
             'update-batch-size': '100',
             'tables': {
@@ -72,8 +72,8 @@ class DdpPushIdsTest(unittest.TestCase):
         rows, ids_to_names, names_to_ids = \
             command._select_latest_rows('Loop.Loop__DDP__c', header, all_rows, ['Name'], True)
 
-        self.assertEqual({}, rows)
-        self.assertEqual({}, ids_to_names)
+        self.assertEqual(dict(), rows)
+        self.assertEqual(dict(), ids_to_names)
 
     def test_select_latest_rows_overwrite_empty_guid(self):
         header = ['DDP_Migrator_Id__c', 'LastModifiedDate', 'Name']

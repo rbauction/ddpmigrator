@@ -47,7 +47,7 @@ class LoopSecurityHandler(FieldHandlerBase):
         """ Converts comma-separated list of profile IDs into comma-separated list of profile names """
         header = self._required_data['Profile']['header']
         name_index = header.index('Name')
-        security_names = []
+        security_names = list()
         for quoted_profile_id in value.split(','):
             security_id = quoted_profile_id.replace("'", "")
             if self._is_id_in_list(security_id, 'Profile'):
@@ -77,11 +77,11 @@ class LoopSecurityHandler(FieldHandlerBase):
         raise Exception("Could not convert value [{0}]".format(security_name))
 
     def _encode_one_value(self, values, value_row_id):
-        security_names = []
+        security_names = list()
         for value in values.splitlines():
             security_names.append(value.split('.'))
 
-        security_ids = []
+        security_ids = list()
         # Convert each value
         for security_type, security_value in security_names:
             security_ids.append(self._lookup_id_by_name(security_type, security_value))

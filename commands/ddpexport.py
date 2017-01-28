@@ -26,7 +26,7 @@ class DdpExport(DdpCommandBase):
     """ Class handling export command """
     def __init__(self, settings, **kwargs):
         super().__init__(settings, **kwargs)
-        self._data = {}
+        self._data = dict()
         self._ddp_ids = None
 
     def _export_table(self, table_name):
@@ -238,7 +238,7 @@ class DdpExport(DdpCommandBase):
         handler = handler_class(self._data[table_name], field_name)
         # Check whether handler class needs any other tables to be loaded
         tables_to_load = handler.tables_required_by_decode()
-        required_data = {}
+        required_data = dict()
         for table_to_load_name, table_to_load in tables_to_load.items():
             raw_data = self._retrieve_data(table_to_load_name, table_to_load['query'])
             header, rows = csvhelper.load_csv_with_one_id_key(raw_data, table_to_load['id'])
@@ -256,7 +256,7 @@ class DdpExport(DdpCommandBase):
         header = self._data['Loop.Loop__DDP_File__c']['header']
         document_index = header.index('Loop__Document_ID__c')
 
-        documents = []
+        documents = list()
         for row_id, row in rows.items():
             documents.append(row[document_index])
 

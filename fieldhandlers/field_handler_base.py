@@ -6,8 +6,8 @@ class FieldHandlerBase:
     """ Base field handler class """
 
     # Hash-tables in 'Table name': 'query' format
-    _TABLES_REQUIRED_BY_DECODE = {}
-    _TABLES_REQUIRED_BY_ENCODE = {}
+    _TABLES_REQUIRED_BY_DECODE = dict()
+    _TABLES_REQUIRED_BY_ENCODE = dict()
 
     def __init__(self, table_data, field_name, is_retry_failed=False):
         self._table_data = table_data

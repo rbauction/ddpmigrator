@@ -136,12 +136,12 @@ class DdpCommandBase:
     def _resolve_dependencies(self):
         for table_name in self._table_settings:
             if table_name not in self._reverse:
-                self._reverse[table_name] = []
+                self._reverse[table_name] = list()
             table_settings = self._table_settings[table_name]
             if 'parent-relationship' in table_settings:
                 dep = table_settings['parent-relationship']['parent-table']
                 if dep not in self._forward:
-                    self._forward[dep] = []
+                    self._forward[dep] = list()
                 self._forward[dep].append(table_name)
                 self._reverse[table_name].append(dep)
 
@@ -153,7 +153,7 @@ class DdpCommandBase:
             return '', table_name
 
     def _retrieve_fields(self, table_name):
-        fields = []
+        fields = list()
         namespace, dev_name = self._parse_table_name(table_name)
         query = \
             """SELECT QualifiedApiName FROM FieldDefinition
