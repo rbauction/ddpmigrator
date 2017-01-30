@@ -284,23 +284,25 @@ class DdpImport(DdpCommandBase):
             self._logger.info("Importing {0} table ({1} row(s))...".format(table_name, row_count))
             if self._table_settings[table_name]['recreate-on-import']:
                 self._delete_records(table_name)
-            should_retry = True
-            last_count = -1
-            while should_retry:
+            last_count = 0
+            imported_ids = list()
+            while True:
                 rows_backup = copy.deepcopy(self._data[table_name]['rows'])
                 is_retry_failed, encoded_rows = self._convert_field_values(table_name)
+                for index in imported_ids:
+                    if index in encoded_rows:
+                        del encoded_rows[index]
                 self._save_table_as_csv(table_name, encoded_rows)
                 encoded_row_count = len(encoded_rows)
                 self._logger.info("  Upserting {0} row(s) ...".format(encoded_row_count))
                 self._import_table(table_name)
-                if last_count == encoded_row_count:
-                    raise Exception("Unable to import {0} row(s)".format(row_count - encoded_row_count))
-                if not is_retry_failed or encoded_row_count == row_count:
-                    should_retry = False
+                imported_ids += list(encoded_rows)
+                last_count += encoded_row_count
+                if not is_retry_failed or last_count == row_count:
+                    break
                 else:
-                    self._logger.info("  Could not import {0} row(s). Will retry ...".format(row_count - encoded_row_count))
+                    self._logger.info("  Could not import {0} row(s). Will retry ...".format(row_count - last_count))
                     self._data[table_name]['rows'] = rows_backup
-                    last_count = encoded_row_count
             import_order += 1
 
     def _delete_records(self, table_name):
@@ -329,8 +331,9 @@ class DdpImport(DdpCommandBase):
         # Abort deletion if there is nothing to delete
         if len(ids_to_delete) == 0:
             return
+        _, rows = csvhelper.load_csv_with_one_id_key(ids_to_delete, 'Id')
         # Delete records by IDs
-        self._logger.info("  Deleting old records ...")
+        self._logger.info("  Deleting {0} old record(s) ...".format(len(rows)))
         self._delete_data(dev_name, ids_to_delete)
 
     def _import_table(self, table_name):
