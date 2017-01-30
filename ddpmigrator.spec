@@ -1,10 +1,11 @@
 # -*- mode: python -*-
+import os
 
 block_cipher = None
 
 
 a = Analysis(['ddpmigrator.py'],
-             pathex=['C:\\Sheva\\Dev-SFDC\\migtool workspace\\ddpmigrator'],
+             pathex=[os.getcwd()],
              binaries=None,
              datas=[('settings.yaml', '.')],
              hiddenimports=[],
