@@ -1,10 +1,12 @@
 from collections import OrderedDict
 from commands.ddpcommandbase import DdpCommandBase
 from datetime import datetime
-from helpers import csvhelper
+from helpers import csvhelper, yamlhelper
 
 import io
+import glob
 import os
+import pathlib
 import shutil
 import time
 import zipfile
@@ -289,21 +291,64 @@ class DdpExport(DdpCommandBase):
         else:
             raise Exception("Could not retrieve DDP files: {0}".format(error_message))
 
-    def _create_directories(self):
+    def _extract_ddp_name_from_path(self, path):
+        return pathlib.Path(os.path.relpath(path, self._get_data_dir())).parts[0]
+
+    def _delete_non_shared_documents(self):
+        # Create DDP-document and document-DDP maps
+        ddps = dict()
+        documents = dict()
+        for filename in glob.glob(os.path.join(self._get_data_dir(), '**/Files/*.yaml')):
+            ddp_file = yamlhelper.load_one_yaml(filename)
+            doc_id = ddp_file['Loop__Document_ID__c']
+            ddp_name = self._extract_ddp_name_from_path(filename)
+            # Update document-DDP map
+            ddps_temp = documents.get(doc_id, set())
+            ddps_temp.add(ddp_name)
+            documents[doc_id] = ddps_temp
+            # Update DDP-document map
+            doc_temp = ddps.get(ddp_name, set())
+            doc_temp.add(doc_id)
+            ddps[ddp_name] = doc_temp
+        # Loop over DDPs that are being pulled down and figure out which ones can be deleted
+        documents_to_delete = set()
+        for ddp_name in self._kwargs['ddp']:
+            if ddp_name not in ddps:
+                continue
+            for doc_id in ddps[ddp_name]:
+                doc_temp = documents[doc_id]
+                doc_temp.remove(ddp_name)
+                documents[doc_id] = doc_temp
+                if len(doc_temp) == 0:
+                    documents_to_delete.add(doc_id)
+        # Delete documents
+        for doc_id in documents_to_delete:
+            for filename in glob.glob(os.path.join(self._get_docs_dir(), "{0}*".format(doc_id))):
+                if os.path.exists(filename):
+                    self._logger.info("    {0}".format(filename))
+                    os.remove(filename)
+
+    def _prep_working_directory(self):
         loop_dir = self._get_loop_dir()
         data_dir = self._get_data_dir()
 
         # Delete DDP directories (so deleted records don't persist after export)
         if os.path.exists(data_dir) and os.path.isdir(data_dir):
             if 'ddp' in self._kwargs:
+                # Delete documents that aren't shared with documents not being pulled down
+                self._logger.info("  Deleting old documents ...")
+                self._delete_non_shared_documents()
+
                 # Delete DDP directories listed in the command line
+                self._logger.info("  Deleting old data directories ...")
                 for ddp_name in self._kwargs['ddp']:
                     ddp_dir_name = self._get_ddp_data_dir_name(ddp_name)
                     if os.path.exists(ddp_dir_name) and os.path.isdir(ddp_dir_name):
+                        self._logger.info("    {0}".format(ddp_dir_name))
                         shutil.rmtree(ddp_dir_name)
             else:
-                # Delete data directory if we pull down all DDPs
-                shutil.rmtree(data_dir)
+                # Delete data and documents directory if we pull down all DDPs
+                shutil.rmtree(loop_dir)
 
         if not os.path.exists(loop_dir):
             self._logger.info("  Creating new source directory {0} ...".format(loop_dir))
@@ -314,8 +359,8 @@ class DdpExport(DdpCommandBase):
             os.mkdir(data_dir)
 
     def do(self):
-        self._logger.info("==> Creating directories ...")
-        self._create_directories()
+        self._logger.info("==> Preparing working directory ...")
+        self._prep_working_directory()
 
         self._logger.info("==> Connecting to Salesforce using {0} account ...".format(self._kwargs['username']))
         self._create_sfdc_session()

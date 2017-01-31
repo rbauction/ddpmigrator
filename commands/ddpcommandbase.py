@@ -76,6 +76,9 @@ class DdpCommandBase:
     def _get_data_dir(self):
         return os.path.join(self._get_loop_dir(), self._DATA_DIR_NAME)
 
+    def _get_docs_dir(self):
+        return os.path.join(self._get_loop_dir(), self._DOCS_DIR_NAME)
+
     def _get_relative_loop_dir(self):
         """ Returns path to loop directory relative to source directory """
         return self._LOOP_DIR_NAME
