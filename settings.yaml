@@ -65,8 +65,8 @@ tables:
         class: RecordTypeIdHandler
   # Relationships
   Loop.Loop__Related_Object__c:
-    # In this case file will be named <Loop__Index__c>-<Name>
-    name: [Loop__Index__c, Name]
+    # In this case file will be named <Loop__Index__c>-<Alias>-<Name>
+    name: [Loop__Index__c, Loop__Related_Object_Alias__c, Name]
     alias: Relationships
     recreate-on-import: true
     parent-relationship:
