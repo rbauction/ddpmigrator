@@ -2,6 +2,7 @@ build/
 dist/
 .idea/
 __pycache__
+*.pyc
 *.iml
 *.csv
 *.zip
