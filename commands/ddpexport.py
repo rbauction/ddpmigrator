@@ -345,10 +345,10 @@ class DdpExport(DdpCommandBase):
                     ddp_dir_name = self._get_ddp_data_dir_name(ddp_name)
                     if os.path.exists(ddp_dir_name) and os.path.isdir(ddp_dir_name):
                         self._logger.info("    {0}".format(ddp_dir_name))
-                        shutil.rmtree(ddp_dir_name)
+                        shutil.rmtree(ddp_dir_name, ignore_errors=True)
             else:
                 # Delete data and documents directory if we pull down all DDPs
-                shutil.rmtree(loop_dir)
+                shutil.rmtree(loop_dir, ignore_errors=True)
 
         if not os.path.exists(loop_dir):
             self._logger.info("  Creating new source directory {0} ...".format(loop_dir))
