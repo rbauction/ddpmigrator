@@ -380,9 +380,10 @@ class DdpImport(DdpCommandBase):
         # Create zip file
         zip_file = self._create_deploy_zip_file()
         # Deploy zip file
+        test_level = 'NoTestRun' if self._kwargs['is_sandbox'] else 'RunLocalTests'
         options = {
             'checkonly': 'false',
-            'testlevel': 'NoTestRun'
+            'testlevel': test_level
         }
         deployment_id, deployment_state = self._mapi.deploy(zip_file, options)
         self._logger.info("  State: {0}".format(deployment_state))
