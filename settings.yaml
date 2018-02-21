@@ -29,6 +29,7 @@ tables:
     name: Name
     # Table name alias to be used to name child directory (file in case of parent table)
     alias: DDP
+    import-order: 0
     # Whether or not recreate records when importing/pushing DDPs
     recreate-on-import: false
     # List of fields and their import/export handlers
@@ -42,6 +43,7 @@ tables:
   Loop.Loop__DDP_File__c:
     name: Name
     alias: Files
+    import-order: 1
     recreate-on-import: false
     # Master-detail or lookup fields in format 'field name: Namespace.Object.Field'
     parent-relationship:
@@ -55,6 +57,7 @@ tables:
   Loop.Loop__DDP_Integration_Option__c:
     name: Name
     alias: Delivery_Options
+    import-order: 2
     recreate-on-import: false
     parent-relationship:
       field: Loop__DDP__c
@@ -68,6 +71,7 @@ tables:
     # In this case file will be named <Loop__Index__c>-<Alias>-<Name>
     name: [Loop__Index__c, Loop__Related_Object_Alias__c, Name]
     alias: Relationships
+    import-order: 3
     recreate-on-import: true
     parent-relationship:
       field: Loop__DDP__c
@@ -79,4 +83,18 @@ tables:
         retry-failed: true
       Loop__Parent_Relationship__c:
         class: LoopParentObjectHandler
+        retry-failed: true
+  # PDF Stamps
+  Loop.Loop__PDF_Stamp__c:
+    name: Name
+    alias: PDF_Stamps
+    import-order: 4
+    recreate-on-import: true
+    parent-relationship:
+      field: Loop__DDP__c
+      parent-table: Loop.Loop__DDP__c
+      parent-field: DDP_Migrator_Id__c
+    field-handlers:
+      Loop__DDP_Files__c:
+        class: LoopDDPFilesHandler
         retry-failed: true
