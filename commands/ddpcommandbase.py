@@ -118,7 +118,7 @@ class DdpCommandBase:
         return self._lookup_table_name_by_alias(table_alias)
 
     def _resolve_import_order(self, table_names):
-        # Prepare list of tables in order of import
+        # Prepare ordered list of tables using import-order from settings.yaml
         ordered_import_list = list()
         for table_name in table_names:
             unordered_element_import_order = self._table_settings[table_name]['import-order']
