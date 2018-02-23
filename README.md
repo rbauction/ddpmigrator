@@ -29,8 +29,9 @@ pip install sfdclib
  * DDP File: Loop\_\_DDP\_File\_\_c
  * Delivery Option: Loop\_\_DDP\_Integration_Option\_\_c
  * Relationship: Loop\_\_Related\_Object\_\_c
+ * Relationship: Loop\_\_PDF\_Stamp\_\_c
 
-4. Execute PopulateGuids.apex script to set values in DDP\_Migrator\_Id\_\_c field in all four objects
+4. Execute PopulateGuids.apex script to set values in DDP\_Migrator\_Id\_\_c field in all five objects
 5. Deploy triggers and a class stored in **metadata** directory.
 
 It is recommended to populate GUIDs/external IDs in Production org first
@@ -81,5 +82,5 @@ ddpmigrator.py import --sandbox --username user@domain.com.sandbox_name --passwo
 
 **Import specific DDPs**
 ```sh
-ddpmigrator.py import --sandbox --username user@domain.com.sandbox_name --password Secret --source-dir .. --ddp "DDP one" "DDP two"
+ddpmigrator.py import --sandbox --username user@domain.com.sandbox_name --password Secret --source-dir .. --d "DDP one" "DDP two"
 ```
