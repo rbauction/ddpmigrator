@@ -2,6 +2,10 @@ from fieldhandlers.record_type_id_handler import (
     RecordTypeIdHandler
 )
 
+from fieldhandlers.loop_ddp_files_handler import (
+    LoopDDPFilesHandler
+)
+
 from fieldhandlers.loop_document_id_handler import (
     LoopDocumentIdHandler
 )
