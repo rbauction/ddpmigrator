@@ -275,6 +275,9 @@ class DdpImport(DdpCommandBase):
             self._load_table(table_name)
 
         ordered_import_list = self._resolve_import_order(self._changed_tables)
+        self._logger.info("  Upsert order:")
+        for table_name in ordered_import_list:
+            self._logger.info(" ({0}) {1}...".format(ordered_import_list.index(table_name), table_name))
 
         # Convert values and import data. Data should be imported in the right order
         import_order = 0

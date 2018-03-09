@@ -8,7 +8,7 @@ from sfdclib import \
 import fieldhandlers
 import logging
 import os
-
+import operator
 
 class DdpCommandBase:
     _LOOP_DIR_NAME = "loop"
@@ -119,40 +119,15 @@ class DdpCommandBase:
 
     def _resolve_import_order(self, table_names):
         # Prepare ordered list of tables using import-order from settings.yaml
+        table_name_with_import_order = {}
         ordered_import_list = list()
+        # create list of tuples in this format {table_name: import order}
         for table_name in table_names:
-            unordered_element_import_order = self._table_settings[table_name]['import-order']
-            if ordered_import_list.__len__() > 1:
-                for ordered_element in ordered_import_list:
-                    ordered_element_import_order = self._table_settings[ordered_element]['import-order']
-                    # if ordered element is the first element
-                    if ordered_import_list.index(ordered_element) == 0:
-                        # and if ordered element has a lower order index
-                        if unordered_element_import_order < ordered_element_import_order:
-                            ordered_import_list.insert(0, table_name)
-                            break
-                    # if ordered element is the last element
-                    elif ordered_import_list.index(ordered_element) == (ordered_import_list.__len__() - 1):
-                        # and if ordered element has a higher order index
-                        if unordered_element_import_order > ordered_element_import_order:
-                            ordered_import_list.insert(ordered_import_list.__len__(), table_name)
-                            break
-                    # if ordered element has a higher import order index
-                    elif ordered_element_import_order > unordered_element_import_order:
-                        ordered_import_list.insert(ordered_import_list.index(ordered_element), table_name)
-                        break
-            if ordered_import_list.__len__() == 1:
-                # get the import order of the first element
-                ordered_element_import_order = self._table_settings[ordered_import_list[0]]['import-order']
-                # since theres only one element we only need to determine if this goes before or after
-                if unordered_element_import_order > ordered_element_import_order:
-                    ordered_import_list.insert(1, table_name)
-                else:
-                    ordered_import_list.insert(0, table_name)
-            # empty list? just drop it in
-            if ordered_import_list.__len__() == 0:
-                ordered_import_list.insert(0, table_name)
-
+            table_name_with_import_order[table_name] = self._table_settings[table_name]['import-order']
+        # use python magic to sort it
+        sorted_table = sorted(table_name_with_import_order.items(), key=operator.itemgetter(1))
+        for i in sorted_table:
+            ordered_import_list.append(i[0])
         return ordered_import_list
 
     def _resolve_dependencies(self):
