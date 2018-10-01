@@ -10,6 +10,7 @@ excluded-fields:
   - LastViewedDate
   - LastReferencedDate
   - UserRecordAccessId
+  - RecordVisibilityId
 
 # Name of unique external ID field
 # This field must exist in each table managed by DDP Migrator
